@@ -36,6 +36,8 @@ export default class TasksController {
   public async destroy({ params, auth }: HttpContextContract) {
     const { id } = params
 
+    //
+
     const todo = await auth.user?.related('tasks').query().where('id', id).first()
 
     return await todo?.delete()
