@@ -4,6 +4,16 @@ import User from './User'
 import Pomodoro from './Pomodoro'
 
 export default class Task extends BaseModel {
+  public serializeExtras() {
+    return {
+      pomodoros_stats: {
+        minutes_spent: this.$extras.minutes_spent ?? 0,
+        finished: this.$extras.finished_pomodoros,
+        total: this.$extras.pomodoros_count,
+      },
+    }
+  }
+
   @column({ isPrimary: true })
   public id: number
 

@@ -5,6 +5,7 @@ export default class AuthController {
   public async login({ request, response, auth }: HttpContextContract) {
     const email = request.input('email')
     const password = request.input('password')
+    console.log('foo')
 
     try {
       const token = await auth.use('api').attempt(email, password)
@@ -24,5 +25,8 @@ export default class AuthController {
       expiresIn: '10 days',
     })
     return token.toJSON()
+  }
+  public async logout({ auth }: HttpContextContract) {
+    return auth.logout()
   }
 }

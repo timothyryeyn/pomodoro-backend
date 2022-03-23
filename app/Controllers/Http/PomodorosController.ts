@@ -1,17 +1,23 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
 export default class PomodorosController {
-  public async index({ params, auth }: HttpContextContract) {
+  public async index({ params, auth, request }: HttpContextContract) {
     const { task_id } = params
 
     const task = await auth.user
       ?.related('tasks')
       .query()
-      .preload('pomodoros')
+      .preload('pomodoros', (pQuery) => {
+        pQuery.withScopes((scopes) => scopes.finishedOnly(request.qs()))
+      })
       .where('id', task_id)
       .first()
 
-    return task?.pomodoros
+    const pomodoros = task?.pomodoros
+
+    const status = pomodoros ? 200 : 404
+
+    return { status: status, data: pomodoros }
   }
 
   public async store({ params, request, auth }: HttpContextContract) {
@@ -56,8 +62,6 @@ export default class PomodorosController {
       .where('id', task_id)
       .first()
 
-    console.log(task?.pomodoros[0])
-
     return task?.pomodoros[0]
   }
 
@@ -77,7 +81,7 @@ export default class PomodorosController {
       .where('id', task_id)
       .first()
 
-    task?.pomodoros[0]?.merge({ lengthInMinutes, isFinished })?.save()
+    return task?.pomodoros[0]?.merge({ lengthInMinutes, isFinished })?.save()
   }
 
   public async destroy({ params, auth }: HttpContextContract) {

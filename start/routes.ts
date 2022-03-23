@@ -20,10 +20,16 @@
 
 import Route from '@ioc:Adonis/Core/Route'
 
+Route.get('api/', async () => {
+  return { title: 'hello world!' }
+})
+
 Route.group(() => {
   Route.post('register', 'AuthController.register')
   Route.post('login', 'AuthController.login')
   Route.group(() => {
+    Route.post('logout', 'AuthController.logout')
+    Route.get('user', 'UsersController.index')
     Route.resource('tasks', 'TasksController').apiOnly()
     Route.resource('tasks.pomodoros', 'PomodorosController').apiOnly()
   }).middleware('auth:api')
