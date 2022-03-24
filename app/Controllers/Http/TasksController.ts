@@ -1,29 +1,31 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
 export default class TasksController {
-  public async index({ auth }: HttpContextContract) {
+  public async index({ auth, response }: HttpContextContract) {
     const user = auth.user
-
-    const isFinished = false
 
     const tasks = await user
       ?.related('tasks')
       .query()
       .withAggregate('pomodoros', (q) => {
-        q.where({ isFinished }).count('*').as('finished_pomodoros')
+        q.where({ isFinished: true }).count('*').as('finished_pomodoros')
       })
       .withCount('pomodoros')
 
-    return { data: tasks }
+    console.log(tasks)
+
+    if (!tasks) return response.notFound()
+
+    return response.ok({ tasks })
   }
 
   public async store({ request, auth }: HttpContextContract) {
     const { title, description } = request.body()
 
-    await auth.user?.related('tasks').create({ title, description })
+    return await auth.user?.related('tasks').create({ title, description })
   }
 
-  public async show({ params, auth }: HttpContextContract) {
+  public async show({ params, auth, response }: HttpContextContract) {
     const { id } = params
 
     const task = await auth.user
@@ -39,9 +41,9 @@ export default class TasksController {
       .where('id', id)
       .first()
 
-    const status = task ? 200 : 404
+    if (!task) return response.notFound()
 
-    return { status: status, data: task }
+    return response.ok({ task })
   }
 
   public async update({ params, request, auth }: HttpContextContract) {
@@ -56,8 +58,6 @@ export default class TasksController {
 
   public async destroy({ params, auth }: HttpContextContract) {
     const { id } = params
-
-    //
 
     const todo = await auth.user?.related('tasks').query().where('id', id).first()
 

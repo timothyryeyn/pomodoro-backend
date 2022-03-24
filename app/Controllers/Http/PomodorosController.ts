@@ -1,7 +1,7 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
 export default class PomodorosController {
-  public async index({ params, auth, request }: HttpContextContract) {
+  public async index({ params, auth, request, response }: HttpContextContract) {
     const { task_id } = params
 
     const task = await auth.user
@@ -15,9 +15,9 @@ export default class PomodorosController {
 
     const pomodoros = task?.pomodoros
 
-    const status = pomodoros ? 200 : 404
+    if (!pomodoros) return response.notFound()
 
-    return { status: status, data: pomodoros }
+    return response.ok({ pomodoros })
   }
 
   public async store({ params, request, auth }: HttpContextContract) {
@@ -47,7 +47,7 @@ export default class PomodorosController {
       pomodoros.push({ lengthInMinutes, isFinished })
     }
 
-    await task?.related('pomodoros').createMany(pomodoros)
+    return await task?.related('pomodoros').createMany(pomodoros)
   }
 
   public async show({ params, auth }: HttpContextContract) {
